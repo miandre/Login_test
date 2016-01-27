@@ -59,11 +59,33 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         switch(v.getId()){
             case R.id.bLogout:
 
-                userLocalStore.clearUserData();
-                userLocalStore.setUserLoggedIn(false);
-
-                startActivity(new Intent(this, Login.class));
+                logout();
                 break;
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        //Adding our menu to toolbar
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.menuLogout) {
+            //calling logout method when the logout button is clicked
+            logout();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void logout(){
+        userLocalStore.clearUserData();
+        userLocalStore.setUserLoggedIn(false);
+
+        startActivity(new Intent(this, Login.class));
+    }
+
 }

@@ -14,7 +14,7 @@ public class User {
         this.age = age;
     }
 
-    public User(String password, String username) {
+    public User(String username, String password) {
         this.name = "";
         this.username = username;
         this.password = password;

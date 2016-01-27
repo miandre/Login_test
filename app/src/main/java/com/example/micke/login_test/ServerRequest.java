@@ -6,6 +6,12 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -33,24 +39,26 @@ public class ServerRequest {
     public static final String SERVER_ADDRESS = "http://iou.16mb.com/";
 
     public ServerRequest(Context context) {
-        progressDialog =new ProgressDialog(context);
+        progressDialog = new ProgressDialog(context);
         progressDialog.setCancelable(false);
         progressDialog.setTitle("Processing Server Request");
         progressDialog.setMessage("Please wait...");
     }
-    public void storeUserDataInBackground(User user, GetUserCallback userCallback){
+
+    public void storeUserDataInBackground(User user, GetUserCallback userCallback) {
         progressDialog.show();
         new storeUserDataAsyncTask(user, userCallback).execute();
 
     }
 
-    public void fetchUserDataInBackground(User user , GetUserCallback userCallback){
-        progressDialog.show();
-        new fetchUserDataAsyncTask(user,userCallback).execute();
 
-    }
+        public void fetchUserDataInBackground(User user , GetUserCallback userCallback){
+            progressDialog.show();
+            new fetchUserDataAsyncTask(user,userCallback).execute();
 
-    public class storeUserDataAsyncTask extends AsyncTask<Void, Void, Void>{
+        }
+
+    public class storeUserDataAsyncTask extends AsyncTask<Void, Void, Void> {
         User user;
         GetUserCallback userCallback;
 
@@ -77,7 +85,7 @@ public class ServerRequest {
             try {
                 post.setEntity(new UrlEncodedFormEntity(dataToSend));
                 client.execute(post);
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
 
             }
@@ -91,6 +99,7 @@ public class ServerRequest {
             super.onPostExecute(aVoid);
         }
     }
+
     public class fetchUserDataAsyncTask extends AsyncTask<Void, Void, User> {
         User user;
         GetUserCallback userCallback;
@@ -98,6 +107,7 @@ public class ServerRequest {
         public fetchUserDataAsyncTask(User user, GetUserCallback userCallback) {
             this.userCallback = userCallback;
             this.user = user;
+
         }
 
         @Override
@@ -106,7 +116,8 @@ public class ServerRequest {
             ArrayList<NameValuePair> dataToSend = new ArrayList<>();
             dataToSend.add(new BasicNameValuePair("username", user.username));
             dataToSend.add(new BasicNameValuePair("password", user.password));
-
+            Log.d("sending username: ", user.username);
+            Log.d("sending password: ", user.password);
 
             HttpParams httpRequestParams = new BasicHttpParams();
             HttpConnectionParams.setConnectionTimeout(httpRequestParams, CONNECTION_TIMEOUT);
@@ -115,30 +126,31 @@ public class ServerRequest {
             HttpClient client = new DefaultHttpClient(httpRequestParams);
             HttpPost post = new HttpPost(SERVER_ADDRESS + "FetchUserData.php");
 
-            User returnedUser = new User("try", "funkade inte","", 0);
+            User returnedUser = null;
             try {
                 post.setEntity(new UrlEncodedFormEntity(dataToSend));
                 HttpResponse httpResponse = client.execute(post);
 
                 HttpEntity entity = httpResponse.getEntity();
                 String result = EntityUtils.toString(entity);
-                JSONArray jsonArray = new JSONArray(result);
+                Log.d("jsonAnswer: ", result);
 
-                //if (jsonArray.length()==0){
-                    if(false){
+                JSONObject jsonObject = new JSONObject(result);
+
+                if (jsonObject.has("fail")){
+                //if (false) {
                     returnedUser = null;
-                }else{
-                    //String name = jsonArray.getString("name");
-                    //int age = jsonArray.getInt("age");
-                    String name = "try funkade";
-                        int age = 30;
-                    returnedUser = new User(name, user.username,user.password, age);
+                } else {
+                    String name = jsonObject.getString("name");
+                    int age = jsonObject.getInt("age");
+                    returnedUser = new User(name, user.username, user.password, age);
                 }
 
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
                 Log.d("ServerRequest: ", "try failed");
             }
+
 
             return returnedUser;
         }
@@ -151,6 +163,6 @@ public class ServerRequest {
         }
 
     }
-
-
 }
+
+
